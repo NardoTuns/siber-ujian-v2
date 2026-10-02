@@ -1,0 +1,26 @@
+/* SIBER-UJIAN — login.css (form login) */
+
+#login-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 12px 0 4px;
+}
+
+#login-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px; /* 16px mencegah zoom otomatis di iPhone */
+  background: #ffffff;
+}
+
+#login-form input:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #1d4ed8;
+}
+
+.password-row { display: flex; gap: 8px; }
+.password-row input { flex: 1; }

@@ -1,0 +1,108 @@
+/* SIBER-UJIAN — exam.css (layar ujian) */
+
+.exam-header { position: sticky; top: 0; z-index: 10; }
+.exam-header-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.exam-title { font-weight: 700; }
+
+.timer-box { text-align: right; }
+.timer {
+  font-size: 28px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #1e3a8a;
+  white-space: nowrap;
+}
+.timer.timer-warn { color: #b91c1c; }
+
+.mode-info { margin-top: 0; margin-bottom: 12px; }
+
+.question-text { font-size: 18px; white-space: pre-wrap; margin-bottom: 12px; }
+.question-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 8px 0 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.options { display: flex; flex-direction: column; gap: 10px; }
+.option-btn {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  min-height: 52px;
+  border: 2px solid #d1d5db;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 16px;
+  cursor: pointer;
+}
+.option-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.option-letter {
+  flex: 0 0 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.option-text { padding-top: 4px; }
+.option-btn.selected { border-color: #1d4ed8; background: #eff6ff; }
+.option-btn.selected .option-letter { background: #1d4ed8; color: #ffffff; }
+.option-btn.pending { border-style: dashed; }
+
+.save-status { margin: 12px 0 8px; font-size: 14px; padding: 8px 10px; border-radius: 8px; }
+.save-ok { background: #dcfce7; color: #166534; }
+.save-pending { background: #fef3c7; color: #92400e; }
+.save-error { background: #fee2e2; color: #991b1b; font-weight: 600; }
+.save-none { background: #f3f4f6; color: #4b5563; }
+
+.grid-title { margin: 16px 0 8px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.grid-btn {
+  min-height: 44px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.grid-btn:disabled { cursor: default; opacity: 1; }
+.grid-btn.locked { background: #e5e7eb; color: #6b7280; border-color: #d1d5db; }
+.grid-btn.answered { background: #1d4ed8; color: #ffffff; border-color: #1d4ed8; }
+.grid-btn.current { outline: 3px solid #f59e0b; outline-offset: 1px; }
+
+.rules { padding-left: 20px; font-size: 14px; }
+.rules li { margin-bottom: 4px; }
+
+/* ---------- Token (Phase 8) ---------- */
+.token-box { margin: 16px 0 8px; }
+.token-box label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.token-box input {
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 22px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-align: center;
+}
+.token-box input:focus { outline: 2px solid #93c5fd; border-color: #1d4ed8; }
+
+/* Rumus matematika (KaTeX) */
+.question-text .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }
+.option-text .katex-display { margin: 0.2em 0; }
+.question-text .katex, .option-text .katex { font-size: 1.1em; }
+.option-text { min-width: 0; overflow-x: auto; overflow-y: hidden; }

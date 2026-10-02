@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e3a8a">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>SIBER-UJIAN</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/login.css">
+  <link rel="stylesheet" href="css/exam.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="app-title">SIBER-UJIAN</div>
+      <div class="school-name" id="school-name">&nbsp;</div>
+    </div>
+    <div class="net-status" id="net-status">...</div>
+  </header>
+
+  <main class="container">
+
+    <!-- Status mode offline / pasang / perbarui (tidak tampil saat ujian) -->
+    <div id="pwa-bar" class="pwa-bar" hidden>
+      <span id="pwa-status" class="pwa-status">Memeriksa mode offline...</span>
+      <button type="button" id="btn-pwa-install" class="btn btn-light btn-small" hidden>Pasang aplikasi</button>
+      <button type="button" id="btn-pwa-update" class="btn btn-primary btn-small" hidden>Perbarui ke versi baru</button>
+    </div>
+
+    <!-- LAYAR: Memuat -->
+    <section id="screen-loading" class="screen">
+      <div class="card"><p>Memuat aplikasi...</p></div>
+    </section>
+
+    <!-- LAYAR: Error fatal -->
+    <section id="screen-fatal" class="screen" hidden>
+      <div class="card">
+        <h2>Aplikasi tidak dapat berjalan</h2>
+        <div id="fatal-message" class="msg msg-error"></div>
+        <p class="small">Coba: gunakan Google Chrome versi terbaru, jangan gunakan mode Penyamaran/Incognito,
+          dan buka lewat alamat <code>https://...github.io/siber-ujian/</code>.</p>
+      </div>
+    </section>
+
+    <!-- LAYAR: URL API belum diisi -->
+    <section id="screen-setup" class="screen" hidden>
+      <div class="card">
+        <h2>URL API belum diatur</h2>
+        <p>Buka file <code>js/config.js</code>, lalu isi <code>API_URL</code> dengan URL Web App dari Phase 1 (berakhiran <code>/exec</code>).</p>
+      </div>
+    </section>
+
+    <!-- LAYAR: Login -->
+    <section id="screen-login" class="screen" hidden>
+      <div class="card">
+        <h2>Masuk</h2>
+        <form id="login-form" autocomplete="off" novalidate>
+          <label for="login-username">Username</label>
+          <input id="login-username" type="text" autocapitalize="none" autocorrect="off"
+                 spellcheck="false" maxlength="50">
+
+          <label for="login-password">Password</label>
+          <div class="password-row">
+            <input id="login-password" type="password" maxlength="100">
+            <button type="button" id="btn-toggle-password" class="btn btn-light btn-small">Lihat</button>
+          </div>
+
+          <button type="submit" id="btn-login" class="btn btn-primary btn-block">Masuk</button>
+        </form>
+        <div id="login-message" class="msg" hidden></div>
+        <p class="small">Tanpa internet? Anda tetap bisa masuk jika akun ini pernah login online di perangkat ini.</p>
+      </div>
+
+      <div class="card">
+        <button type="button" id="btn-ping" class="btn btn-light btn-block">Tes koneksi ke server</button>
+        <div id="ping-message" class="msg" hidden></div>
+        <p class="small">Guru: buka <a href="dashboard.html">Dashboard Guru</a>.</p>
+      </div>
+    </section>
+
+    <!-- LAYAR: Beranda -->
+    <section id="screen-home" class="screen" hidden>
+      <div class="card">
+        <h2 id="home-name"></h2>
+        <div id="home-mode" class="mode-badge"></div>
+        <table class="info-table"><tbody id="home-info"></tbody></table>
+        <div id="session-message" class="msg" hidden></div>
+        <button type="button" id="btn-logout" class="btn btn-light btn-block">Keluar</button>
+      </div>
+
+      <div class="card">
+        <h3>Hasil ujian di perangkat ini</h3>
+        <p class="small">Hasil dikirim otomatis ke server saat ada internet. Jangan hapus data aplikasi sebelum semua hasil TERKIRIM.</p>
+        <button type="button" id="btn-sync-now" class="btn btn-primary btn-block">Kirim hasil sekarang</button>
+        <div id="results-message" class="msg" hidden></div>
+        <div id="results-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>Daftar ujian</h3>
+        <p class="small">Unduh soal saat ada internet (di rumah). Ujian hanya bisa dikerjakan jika berstatus READY.</p>
+        <div class="btn-row">
+          <button type="button" id="btn-load-exams" class="btn btn-light">Perbarui daftar ujian</button>
+          <button type="button" id="btn-download-all" class="btn btn-primary">Unduh semua ujian</button>
+        </div>
+        <div id="home-message" class="msg" hidden></div>
+        <div id="exam-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>Penyimpanan perangkat</h3>
+        <table class="info-table"><tbody id="storage-info"></tbody></table>
+        <div class="btn-row">
+          <button type="button" id="btn-storage-test" class="btn btn-light">Uji simpan data</button>
+          <button type="button" id="btn-storage-refresh" class="btn btn-light">Segarkan info</button>
+        </div>
+        <div id="storage-message" class="msg" hidden></div>
+      </div>
+
+      <div class="card danger-zone">
+        <h3>Khusus pengujian</h3>
+        <p class="small">Menghapus SEMUA data aplikasi di perangkat ini (akun tersimpan, soal, hasil ujian, pengaturan).
+          Jangan dipakai sebelum semua hasil ujian TERKIRIM.</p>
+        <button type="button" id="btn-wipe" class="btn btn-danger btn-block">Hapus semua data lokal</button>
+      </div>
+    </section>
+
+    <!-- LAYAR: Pembuka ujian -->
+    <section id="screen-exam-intro" class="screen" hidden>
+      <div class="card">
+        <h2 id="intro-title"></h2>
+        <table class="info-table"><tbody id="intro-info"></tbody></table>
+        <h4>Aturan</h4>
+        <ul id="intro-rules" class="rules"></ul>
+
+        <div id="intro-token-box" class="token-box" hidden>
+          <label for="intro-token">Token dari guru</label>
+          <input id="intro-token" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters"
+                 spellcheck="false" maxlength="20" placeholder="contoh: X7K9-2QMT">
+          <p class="small">Token dibacakan guru di kelas saat ujian akan dimulai. Pemeriksaan token tidak memerlukan internet.</p>
+        </div>
+
+        <div id="intro-message" class="msg" hidden></div>
+        <button type="button" id="btn-intro-start" class="btn btn-primary btn-block">Mulai ujian sekarang</button>
+        <button type="button" id="btn-intro-back" class="btn btn-light btn-block">Kembali</button>
+      </div>
+    </section>
+
+    <!-- LAYAR: Ujian -->
+    <section id="screen-exam" class="screen" hidden>
+      <div class="card exam-header">
+        <div class="exam-header-row">
+          <div>
+            <div id="exam-title" class="exam-title"></div>
+            <div id="exam-progress" class="small"></div>
+          </div>
+          <div class="timer-box">
+            <div id="exam-timer-label" class="small">Sisa waktu</div>
+            <div id="exam-timer" class="timer">--:--</div>
+          </div>
+        </div>
+        <div id="exam-notice" class="msg msg-info" hidden></div>
+      </div>
+
+      <div class="card">
+        <div id="exam-mode-info" class="msg msg-info mode-info" hidden></div>
+        <div id="exam-question-text" class="question-text"></div>
+        <img id="exam-question-image" class="question-image" alt="Gambar soal" hidden>
+        <div id="exam-options" class="options"></div>
+        <div id="exam-save-status" class="save-status save-none"></div>
+        <button type="button" id="btn-clear-answer" class="btn btn-light btn-small">Kosongkan jawaban</button>
+      </div>
+
+      <div class="card">
+        <div id="nav-row" class="btn-row">
+          <button type="button" id="btn-prev" class="btn btn-light">&larr; Sebelumnya</button>
+          <button type="button" id="btn-next" class="btn btn-primary">Berikutnya &rarr;</button>
+        </div>
+        <h4 class="grid-title">Nomor soal</h4>
+        <div id="exam-grid" class="grid"></div>
+        <p id="grid-legend" class="small"></p>
+        <button type="button" id="btn-finish" class="btn btn-danger btn-block">Selesai ujian</button>
+      </div>
+    </section>
+
+    <!-- LAYAR: Konfirmasi selesai (khusus mode TOTAL) -->
+    <section id="screen-exam-confirm" class="screen" hidden>
+      <div class="card">
+        <h2>Selesaikan ujian?</h2>
+        <p>Sisa waktu: <strong id="confirm-timer">--:--</strong></p>
+        <table class="info-table"><tbody id="confirm-info"></tbody></table>
+        <div id="confirm-warning" class="msg msg-warn" hidden></div>
+        <p class="small">Setelah diselesaikan, ujian TIDAK dapat dibuka kembali.</p>
+        <button type="button" id="btn-confirm-yes" class="btn btn-danger btn-block">Ya, selesaikan ujian</button>
+        <button type="button" id="btn-confirm-no" class="btn btn-light btn-block">Kembali ke soal</button>
+      </div>
+    </section>
+
+    <!-- LAYAR: Ujian selesai -->
+    <section id="screen-exam-done" class="screen" hidden>
+      <div class="card">
+        <h2>Ujian selesai</h2>
+        <div id="done-message" class="msg msg-ok"></div>
+        <table class="info-table"><tbody id="done-info"></tbody></table>
+        <p class="small">Hasil tersimpan di perangkat dan dikirim otomatis ke server saat ada internet.
+          Status pengiriman bisa dilihat di beranda. Jangan hapus data aplikasi sebelum hasil TERKIRIM.</p>
+        <button type="button" id="btn-done-home" class="btn btn-primary btn-block">Kembali ke beranda</button>
+      </div>
+    </section>
+
+    <!-- Panel debug -->
+    <details class="card debug">
+      <summary>Panel debug (untuk pengujian)</summary>
+      <pre id="debug-output">Belum ada request.</pre>
+    </details>
+  </main>
+
+  <footer class="footer" id="footer-version"></footer>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/db.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="js/sync.js" defer></script>
+  <script src="js/token.js" defer></script>
+  <script src="js/timer.js" defer></script>
+  <script src="js/questions.js" defer></script>
+  <script src="vendor/katex/katex.min.js" defer></script>
+  <script src="js/mathrender.js" defer></script>
+  <script src="js/exam.js" defer></script>
+  <script src="js/submit.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>
