@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e3a8a">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Dashboard Guru - SIBER-UJIAN</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/login.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="app-title">SIBER-UJIAN &middot; Dashboard Guru</div>
+      <div class="school-name" id="school-name">&nbsp;</div>
+    </div>
+    <div class="net-status" id="net-status">...</div>
+  </header>
+
+  <main class="container wide">
+
+    <!-- Status mode offline / pasang / perbarui -->
+    <div id="pwa-bar" class="pwa-bar" hidden>
+      <span id="pwa-status" class="pwa-status">Memeriksa mode offline...</span>
+      <button type="button" id="btn-pwa-install" class="btn btn-light btn-small" hidden>Pasang aplikasi</button>
+      <button type="button" id="btn-pwa-update" class="btn btn-primary btn-small" hidden>Perbarui ke versi baru</button>
+    </div>
+
+    <!-- LAYAR: Memuat -->
+    <section id="screen-loading" class="screen">
+      <div class="card"><p>Memuat dashboard...</p></div>
+    </section>
+
+    <!-- LAYAR: Error fatal -->
+    <section id="screen-fatal" class="screen" hidden>
+      <div class="card">
+        <h2>Dashboard tidak dapat berjalan</h2>
+        <div id="fatal-message" class="msg msg-error"></div>
+      </div>
+    </section>
+
+    <!-- LAYAR: URL API belum diisi -->
+    <section id="screen-setup" class="screen" hidden>
+      <div class="card">
+        <h2>URL API belum diatur</h2>
+        <p>Isi <code>API_URL</code> di file <code>js/config.js</code>.</p>
+      </div>
+    </section>
+
+    <!-- LAYAR: Login guru -->
+    <section id="screen-login" class="screen" hidden>
+      <div class="card narrow">
+        <h2>Masuk Guru / Admin</h2>
+        <form id="login-form" autocomplete="off" novalidate>
+          <label for="login-username">Username</label>
+          <input id="login-username" type="text" autocapitalize="none" autocorrect="off"
+                 spellcheck="false" maxlength="50">
+
+          <label for="login-password">Password</label>
+          <div class="password-row">
+            <input id="login-password" type="password" maxlength="100">
+            <button type="button" id="btn-toggle-password" class="btn btn-light btn-small">Lihat</button>
+          </div>
+
+          <button type="submit" id="btn-login" class="btn btn-primary btn-block">Masuk</button>
+        </form>
+        <div id="login-message" class="msg" hidden></div>
+        <p class="small">Halaman ini khusus akun guru (TEACHER) dan admin (ADMIN).
+          Siswa memakai <a href="index.html">aplikasi ujian</a>.</p>
+      </div>
+    </section>
+
+    <!-- LAYAR: Dashboard -->
+    <section id="screen-home" class="screen" hidden>
+      <div class="card">
+        <div class="dash-head">
+          <div>
+            <h2 id="dash-teacher"></h2>
+            <div id="dash-exam-info" class="small"></div>
+          </div>
+          <button type="button" id="btn-logout" class="btn btn-light btn-small">Keluar</button>
+        </div>
+
+        <div class="toolbar">
+          <label class="field">Ujian
+            <select id="sel-exam"></select>
+          </label>
+          <label class="field">Kelas
+            <select id="sel-class"><option value="">Semua kelas</option></select>
+          </label>
+          <label class="field">Urutkan peserta
+            <select id="sel-sort">
+              <option value="class">Kelas lalu nama</option>
+              <option value="score_desc">Nilai tertinggi</option>
+              <option value="score_asc">Nilai terendah</option>
+              <option value="status">Belum terkirim dulu</option>
+              <option value="warn">Ada catatan dulu</option>
+            </select>
+          </label>
+          <button type="button" id="btn-refresh" class="btn btn-primary">Perbarui</button>
+        </div>
+        <label class="check-row"><input type="checkbox" id="chk-auto"> Perbarui otomatis setiap 60 detik (saat online)</label>
+        <div id="dash-message" class="msg" hidden></div>
+        <div id="dash-note" class="msg msg-info" hidden></div>
+      </div>
+
+      <div class="card">
+        <h3>Export</h3>
+        <p class="small">Mengekspor data yang sedang tampil (ujian dan filter kelas yang dipilih).
+          Untuk Microsoft Excel gunakan tombol Excel (.xlsx). CSV cocok untuk Google Sheets.</p>
+        <div class="export-grid">
+          <button type="button" id="btn-export-xlsx" class="btn btn-primary">Excel (.xlsx) lengkap</button>
+          <button type="button" id="btn-export-print" class="btn btn-primary">Cetak / PDF</button>
+          <button type="button" id="btn-export-csv-participants" class="btn btn-light">CSV Peserta</button>
+          <button type="button" id="btn-export-csv-items" class="btn btn-light">CSV Analisis Soal</button>
+        </div>
+        <div id="export-message" class="msg" hidden></div>
+      </div>
+
+      <div class="card">
+        <h3>Ringkasan</h3>
+        <div id="summary-grid" class="summary-grid"></div>
+      </div>
+
+      <div class="card">
+        <h3>Rekap per kelas</h3>
+        <div id="by-class" class="table-wrap"></div>
+      </div>
+
+      <div class="card">
+        <h3>Daftar peserta</h3>
+        <p class="small">Baris kuning = ada catatan (jam perangkat diubah, paket versi lama, token, dll). Tekan "Detail" untuk melihat jawaban per soal.</p>
+        <div id="participants" class="table-wrap"></div>
+      </div>
+
+      <div class="card">
+        <h3>Analisis butir soal</h3>
+        <p class="small">Kategori: MUDAH (&ge; 70% benar), SEDANG (30&ndash;70%), SUKAR (&lt; 30%).
+          Sebaran memakai huruf pilihan ASLI sesuai sheet QUESTIONS.</p>
+        <div id="items" class="table-wrap"></div>
+      </div>
+
+      <p class="small center"><a href="index.html">Buka aplikasi ujian</a></p>
+    </section>
+  </main>
+
+  <!-- Panel detail jawaban siswa -->
+  <div id="detail-modal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="dash-head">
+        <h3 id="detail-title">Detail jawaban</h3>
+        <button type="button" id="btn-detail-close" class="btn btn-light btn-small">Tutup</button>
+      </div>
+      <table class="info-table"><tbody id="detail-info"></tbody></table>
+      <p class="small">Huruf jawaban sesuai urutan pilihan ASLI di sheet QUESTIONS (bukan urutan acak di layar siswa).</p>
+      <div id="detail-message" class="msg" hidden></div>
+      <div id="detail-answers" class="table-wrap"></div>
+    </div>
+  </div>
+
+  <footer class="footer" id="footer-version"></footer>
+
+  <!-- Isi laporan cetak/PDF (hanya tampil saat mencetak) -->
+  <div id="print-area" class="print-area"></div>
+
+  <script src="js/config.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/db.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+  <script src="vendor/katex/katex.min.js" defer></script>
+  <script src="js/mathrender.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+  <script src="js/reports.js" defer></script>
+  <script src="js/pwa.js" defer></script>
+</body>
+</html>
